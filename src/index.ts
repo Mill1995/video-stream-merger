@@ -472,9 +472,9 @@ export class VideoStreamMerger {
       this._ctx?.clearRect(0, 0, this.width, this.height);
     }
     this._streams.forEach((stream) => {
-      if (stream.draw) { // custom frame transform
+      if (stream.draw && stream.element) { // custom frame transform
         stream.draw(this._ctx, stream.element, done);
-      } else if (!stream.isData && stream.hasVideo) {
+      } else if (!stream.isData && stream.hasVideo && stream.element) {
         this._drawVideo(stream.element, stream);
         done();
       } else {

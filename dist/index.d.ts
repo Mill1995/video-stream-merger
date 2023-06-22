@@ -74,8 +74,8 @@ export declare class VideoStreamMerger {
     private _videoSyncDelayNode;
     private _audioDestination;
     private _audioCtx;
-    constructor(options?: ConstructorOptions | undefined);
-    setOptions(options?: ConstructorOptions | undefined): void;
+    constructor(options?: Partial<ConstructorOptions>);
+    setOptions(options?: Partial<ConstructorOptions>): void;
     /**
      * Change the size of the canvas and the output video track.
      */
