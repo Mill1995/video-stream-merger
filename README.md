@@ -2,6 +2,9 @@
 
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
+
+!!! This is a fork of the original video-stream-merger !!!
+
 Merges the video of multiple MediaStreams. Also merges the audio via the WebAudio API.  
 
 - Send multiple videos over a single WebRTC MediaConnection.
