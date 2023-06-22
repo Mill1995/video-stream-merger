@@ -329,40 +329,8 @@ export class VideoStreamMerger {
     stream.hasVideo = mediaStream.getVideoTracks().length > 0;
     stream.hasAudio = mediaStream.getAudioTracks().length > 0;
 
-    // If it is the same MediaStream, we can reuse our video element (and ignore sound)
-    let videoElement : HTMLVideoElement | null = null;
-    for (let i = 0; i < this._streams.length; i++) {
-      if (this._streams[i].id === mediaStream.id) {
-        videoElement = this._streams[i].element;
-      }
-    }
 
-    if (!videoElement) {
-      videoElement = document.createElement('video');
-      videoElement.autoplay = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.srcObject = mediaStream;
-      videoElement.setAttribute('style', 'position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;');
-      document.body.appendChild(videoElement);
-
-      const res = videoElement.play();
-      res.catch(null);
-
-      if (stream.hasAudio && this._audioCtx && !stream.mute) {
-        stream.audioSource = this._audioCtx.createMediaStreamSource(mediaStream);
-        stream.audioOutput = this._audioCtx.createGain(); // Intermediate gain node
-        stream.audioOutput.gain.value = 1;
-        if (stream.audioEffect) {
-          stream.audioEffect(stream.audioSource, stream.audioOutput);
-        } else {
-          stream.audioSource.connect(stream.audioOutput); // Default is direct connect
-        }
-        stream.audioOutput.connect(this._videoSyncDelayNode);
-      }
-    }
-
-    stream.element = videoElement;
+    stream.element = null;
     stream.id = mediaStream.id || null;
     this._streams.push(stream);
     this._sortStreams();
@@ -529,8 +497,8 @@ export class VideoStreamMerger {
     const height = stream.height || canvasHeight;
     const width = stream.width || canvasWidth;
 
-    let positionX = stream.x || 0;
-    let positionY = stream.y || 0;
+    const positionX = stream.x || 0;
+    const positionY = stream.y || 0;
 
     try {
         this._ctx?.drawImage(element, positionX, positionY, width, height);
