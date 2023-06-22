@@ -329,8 +329,40 @@ export class VideoStreamMerger {
     stream.hasVideo = mediaStream.getVideoTracks().length > 0;
     stream.hasAudio = mediaStream.getAudioTracks().length > 0;
 
+    // If it is the same MediaStream, we can reuse our video element (and ignore sound)
+    let videoElement : HTMLVideoElement | null = null;
+    for (let i = 0; i < this._streams.length; i++) {
+      if (this._streams[i].id === mediaStream.id) {
+        videoElement = this._streams[i].element;
+      }
+    }
 
-    stream.element = null;
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      videoElement.autoplay = true;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+      videoElement.srcObject = mediaStream;
+      // videoElement.setAttribute('style', 'position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;');
+      // document.body.appendChild(videoElement);
+
+      const res = videoElement.play();
+      res.catch(null);
+
+      if (stream.hasAudio && this._audioCtx && !stream.mute) {
+        stream.audioSource = this._audioCtx.createMediaStreamSource(mediaStream);
+        stream.audioOutput = this._audioCtx.createGain(); // Intermediate gain node
+        stream.audioOutput.gain.value = 1;
+        if (stream.audioEffect) {
+          stream.audioEffect(stream.audioSource, stream.audioOutput);
+        } else {
+          stream.audioSource.connect(stream.audioOutput); // Default is direct connect
+        }
+        stream.audioOutput.connect(this._videoSyncDelayNode);
+      }
+    }
+
+    stream.element = videoElement;
     stream.id = mediaStream.id || null;
     this._streams.push(stream);
     this._sortStreams();
@@ -427,7 +459,7 @@ export class VideoStreamMerger {
 
     // Add video
     this.result = this._canvas?.captureStream(this.fps) || null;
-
+    
     // Remove "dead" audio track
     const deadTrack = this.result?.getAudioTracks()[0];
     if (deadTrack) {this.result?.removeTrack(deadTrack);}
@@ -437,6 +469,7 @@ export class VideoStreamMerger {
     if (audioTracks && audioTracks.length) {
       this.result?.addTrack(audioTracks[0]);
     }
+    
   }
 
   private _updateAudioDelay(delayInMs: number) {
@@ -472,9 +505,9 @@ export class VideoStreamMerger {
       this._ctx?.clearRect(0, 0, this.width, this.height);
     }
     this._streams.forEach((stream) => {
-      if (stream.draw && stream.element) { // custom frame transform
+      if (stream.draw) { // custom frame transform
         stream.draw(this._ctx, stream.element, done);
-      } else if (!stream.isData && stream.hasVideo && stream.element) {
+      } else if (!stream.isData && stream.hasVideo) {
         this._drawVideo(stream.element, stream);
         done();
       } else {
@@ -542,4 +575,3 @@ export class VideoStreamMerger {
 if (typeof window !== "undefined") {
     (window as any).VideoStreamMerger = VideoStreamMerger;
 }
-

@@ -1,5 +1,5 @@
 {
-  "name": "video-stream-merger-forked",
+  "name": "video-stream-merger",
   "version": "4.0.1",
   "description": "Create a composite from multiple MediaStreams.",
   "author": "Thomas Mullen",
